@@ -1,4 +1,4 @@
-module Api_geocode_dadata
+module github.com/vadim-shalnev/API_Server_dadata
 
 go 1.19
 
