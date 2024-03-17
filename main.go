@@ -21,5 +21,9 @@ func main() {
 	r.Get("/docs/*", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
 	))
-	http.ListenAndServe(":8080", r)
+
+	err := http.ListenAndServe(":8080", r)
+	if err != nil {
+		return
+	}
 }

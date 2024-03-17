@@ -1,9 +1,9 @@
 package Controller
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
+	Repository "github.com/vadim-shalnev/API_Server_dadata/Repository"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -49,32 +49,24 @@ type NewUser struct {
 func Login(w http.ResponseWriter, r *http.Request) {
 	tokenString := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 
-	valid := PrivaseCheker(tokenString)
-	w.Write([]byte(valid))
+	valid, err := PrivaseCheker(w, r, tokenString)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	_, err = w.Write([]byte(valid))
+	if err != nil {
+		return
+	}
 
 }
 
-func PrivaseCheker(Usertoken string) string {
-	client := &http.Client{}
+func PrivaseCheker(w http.ResponseWriter, r *http.Request, Usertoken string) (string, error) {
 
-	req, err := http.NewRequest("GET", "http://Repository:8070/api/login", nil)
+	req, err := Repository.Login(w, r, Usertoken)
 	if err != nil {
-		log.Fatal("Ошибка при логине", err)
+		return "", err
 	}
-
-	req.Header.Set("Authorization", "Bearer "+Usertoken)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal("Ошибка логина к сервису", err)
-	}
-	defer resp.Body.Close()
-
-	bodyJSON, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal("Ошибка чтения ответа сервиса ", err)
-	}
-	return string(bodyJSON)
+	return req, nil
 
 }
 
@@ -100,7 +92,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Не удалось дессериализировать JSON", http.StatusBadRequest)
 	}
 
-	tokenString := TokenReqGenerate(bodyJSON)
+	tokenString := TokenReqGenerate(w, r, bodyJSON)
 
 	var tokenStr TokenString
 	tokenStr.T = tokenString
@@ -111,65 +103,33 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(tokenJSON)
 }
-func TokenReqGenerate(User []byte) string {
-	req, err := http.NewRequest("POST", "http://Repository:8070/api/register", bytes.NewReader(User))
+func TokenReqGenerate(w http.ResponseWriter, r *http.Request, User []byte) string {
+	req, err := Repository.Register(w, r, User)
 	if err != nil {
 		log.Fatal(err)
-	}
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-
-	bodyJSON, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal("Неверный ответ от сервиса регистрации", err)
 	}
 
 	var tokenstr TokenString
 
-	err = json.Unmarshal(bodyJSON, &tokenstr)
-	if err != nil {
-		log.Fatal("Анмарш токена сервиса реги", err)
-	}
+	tokenstr.T = req
 
-	tokenToUser := tokenstr.T
-	return tokenToUser
+	return req
 
 }
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Usertoken := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
-		fmt.Println("tests")
-		client := &http.Client{}
+		tokenString := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 
-		req, err := http.NewRequest("GET", "http://Repository:8070/api/login", nil)
+		valid, err := PrivaseCheker(w, r, tokenString)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
 		}
-
-		req.Header.Set("Authorization", "Bearer "+Usertoken)
-
-		resp, err := client.Do(req)
+		_, err = w.Write([]byte(valid))
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		defer resp.Body.Close()
 
-		bodyJ, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		fmt.Println(string(bodyJ))
-		if resp.StatusCode != http.StatusOK {
-			return
-		}
 		next.ServeHTTP(w, r)
 	})
 }
@@ -186,30 +146,15 @@ func AuthMiddleware(next http.Handler) http.Handler {
 // @Failure 500 {error} http.Error
 // @Router /search [post]
 func HandleSearch(w http.ResponseWriter, r *http.Request) {
-	bodyJSON, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Fatal("Ошибка чтения запроса пользователя", err)
-	}
-	Usertoken := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 
-	client := &http.Client{}
-	url := "http://Service:8090"
-	url += r.URL.Path
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(bodyJSON))
+	resp, err := Service(w, r)
 	if err != nil {
-		log.Fatal("Ошибка в ответе сервиса поиска", err)
+		fmt.Println(err)
 	}
-	req.Header.Set("Authorization", "Bearer "+Usertoken)
 
-	resp, err := client.Do(req)
+	bodyJSON, err := json.Marshal(resp)
 	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-
-	bodyJSON, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 	w.Write(bodyJSON)
 
@@ -227,30 +172,15 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {error} http.Error
 // @Router /geocode [post]
 func HandleGeocode(w http.ResponseWriter, r *http.Request) {
-	bodyJSON, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Fatal("Ошибка чтения запроса пользователя", err)
-	}
-	Usertoken := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 
-	client := &http.Client{}
-	url := "http://Service:8090"
-	url += r.URL.Path
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(bodyJSON))
+	resp, err := Service(w, r)
 	if err != nil {
-		log.Fatal("Ошибка в ответе сервиса поиска", err)
+		fmt.Println(err)
 	}
-	req.Header.Set("Authorization", "Bearer "+Usertoken)
 
-	resp, err := client.Do(req)
+	bodyJSON, err := json.Marshal(resp)
 	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-
-	bodyJSON, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 	w.Write(bodyJSON)
 

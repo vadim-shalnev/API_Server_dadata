@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/jwtauth/v5"
-	"io/ioutil"
 	"net/http"
-	"strings"
 )
 
 type TokenString struct {
@@ -22,10 +20,9 @@ var AuthUser map[string]NewUser
 var UserToken map[string]TokenString
 var tokenAuth *jwtauth.JWTAuth
 
-func Login(w http.ResponseWriter, r *http.Request) {
-	tokenString := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
-	fmt.Println(tokenString)
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+func Login(w http.ResponseWriter, r *http.Request, usrToken string) (string, error) {
+	fmt.Println(usrToken)
+	token, err := jwt.Parse(usrToken, func(token *jwt.Token) (interface{}, error) {
 		// Проверка подписи методом HMAC
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -36,7 +33,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, "Ошибка разбора токена", http.StatusBadRequest)
-		return
+		return "", err
 	}
 	CheckForUsername := ""
 	CheckForPassword := ""
@@ -45,8 +42,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		// Получение клеймов из токена
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
-			w.Write([]byte("Ошибка получения клеймов из токена"))
-			return
+			return "", fmt.Errorf("ошибка получения клеймов из токена")
 		}
 
 		// Вывод клеймов
@@ -63,35 +59,29 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		}
 
 	} else {
-		w.Write([]byte("Некорректный токен"))
+		return "", fmt.Errorf("некорректный токен")
 	}
 	user, _ := AuthUser[CheckForUsername]
 	if user.Username != CheckForUsername || user.Password != CheckForPassword {
-		w.Write([]byte("Неправильный пароль или имя пользователя"))
-		return
+		return "", fmt.Errorf("неправильный пароль или имя пользователя")
 	}
 	userToken, _ := UserToken[CheckForUsername]
-	if userToken.T != tokenString {
-		w.Write([]byte("неправильный токен"))
-		return
+	if userToken.T != usrToken {
+		return "", fmt.Errorf("неправильный токен")
 	}
 
-	w.Write([]byte("Вы успешно авторизованы"))
+	return "Вы успешно авторизованы", nil
 }
-func Register(w http.ResponseWriter, r *http.Request) {
-	bodyJSON, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
+func Register(w http.ResponseWriter, r *http.Request, User []byte) (string, error) {
 	var regData NewUser
-	err = json.Unmarshal(bodyJSON, &regData)
+	err := json.Unmarshal(User, &regData)
 	if err != nil {
-		fmt.Println(err)
+		return "", fmt.Errorf("неправильный формат учетных данных")
 	}
 	tokenAuth = jwtauth.New("HS256", []byte("secret"), nil)
 	_, tokenString, err := tokenAuth.Encode(map[string]interface{}{"Username": regData.Username, "Password": regData.Password})
 	if err != nil {
-		fmt.Println(err)
+		return "", fmt.Errorf("ошибка генерации токена")
 	}
 	var tokenStr TokenString
 	tokenStr.T = tokenString
@@ -100,9 +90,5 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	UserToken = make(map[string]TokenString)
 	UserToken[regData.Username] = tokenStr
 
-	tokenJSON, err := json.Marshal(tokenStr)
-	if err != nil {
-		fmt.Println(err)
-	}
-	w.Write(tokenJSON)
+	return tokenString, nil
 }
