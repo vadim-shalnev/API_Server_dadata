@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	Repository "github.com/vadim-shalnev/API_Server_dadata/Repository"
+	Service "github.com/vadim-shalnev/API_Server_dadata/Service"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -147,7 +148,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 // @Router /search [post]
 func HandleSearch(w http.ResponseWriter, r *http.Request) {
 
-	resp, err := Service(w, r)
+	resp, err := Service.Handle(w, r)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -173,7 +174,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 // @Router /geocode [post]
 func HandleGeocode(w http.ResponseWriter, r *http.Request) {
 
-	resp, err := Service(w, r)
+	resp, err := Service.Handle(w, r)
 	if err != nil {
 		fmt.Println(err)
 	}

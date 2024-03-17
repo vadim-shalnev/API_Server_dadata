@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/ekomobile/dadata/v2 v2.10.0
 	github.com/go-chi/jwtauth/v5 v5.3.1
 	github.com/lib/pq v1.10.9
 )
@@ -11,7 +12,6 @@ require (
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
-	github.com/ekomobile/dadata/v2 v2.10.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.12 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
