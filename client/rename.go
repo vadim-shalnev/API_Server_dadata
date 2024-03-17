@@ -82,22 +82,24 @@ func main() {
 	// Отправляем запрос на сервер
 	resp, err = client.Do(req)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("1", err)
 		return
 	}
 	defer resp.Body.Close()
 
 	bodyJSON, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("2", err)
+		return
+	}
+	fmt.Println(string(bodyJSON))
+	var datainfo RequestAddressSearch
+
+	err = json.Unmarshal(bodyJSON, &datainfo)
+	if err != nil {
+		fmt.Println("3", err)
 		return
 	}
 
-	var datainfo RequestAddressSearch
-	err = json.Unmarshal(bodyJSON, &datainfo)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 	fmt.Println(datainfo)
 }

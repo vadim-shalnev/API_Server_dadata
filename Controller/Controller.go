@@ -11,31 +11,6 @@ import (
 	"strings"
 )
 
-type RequestAddressGeocode struct {
-	Lat string `json:"lat"`
-	Lng string `json:"lng"`
-}
-type RequestAddressInfo struct {
-	Addres string `json:"addres"`
-}
-type RequestAddressSearch struct {
-	Query string `json:"query"`
-}
-type TokenString struct {
-	T string `json:"token"`
-}
-type NewUser struct {
-	Username string `json:"user_name"`
-	Password string `json:"password"`
-}
-
-// @title Todo geocode API
-// @version 1.0
-// @description API Server for search GEOinfo
-
-// @host localhost:8080
-// @BasePath /api/address
-
 // Login @Login
 // @Summary User login
 // @Description User login with JWT token
@@ -77,7 +52,7 @@ func PrivaseCheker(w http.ResponseWriter, r *http.Request, Usertoken string) (st
 // @Description Register a new user
 // @Accept json
 // @Produce json
-// @Param input body NewUser true "User object for registration"
+// @Param input body todo.NewUser true "User object for registration"
 // @Success 200 {integer} integer 1
 // @Failure 404 {error} http.Error
 // @Failure 500 {error} http.Error
@@ -87,7 +62,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Не удалось прочитать запрос", http.StatusBadRequest)
 	}
-	var regData NewUser
+	var regData Repository.NewUser
 	err = json.Unmarshal(bodyJSON, &regData)
 	if err != nil {
 		http.Error(w, "Не удалось дессериализировать JSON", http.StatusBadRequest)
@@ -95,7 +70,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	tokenString := TokenReqGenerate(w, r, bodyJSON)
 
-	var tokenStr TokenString
+	var tokenStr Repository.TokenString
 	tokenStr.T = tokenString
 
 	tokenJSON, err := json.Marshal(tokenStr)
@@ -110,7 +85,7 @@ func TokenReqGenerate(w http.ResponseWriter, r *http.Request, User []byte) strin
 		log.Fatal(err)
 	}
 
-	var tokenstr TokenString
+	var tokenstr Repository.TokenString
 
 	tokenstr.T = req
 
@@ -122,20 +97,16 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenString := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 
-		valid, err := PrivaseCheker(w, r, tokenString)
+		_, err := PrivaseCheker(w, r, tokenString)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
-		}
-		_, err = w.Write([]byte(valid))
-		if err != nil {
-			return
 		}
 
 		next.ServeHTTP(w, r)
 	})
 }
 
-// HandleSearch @Controller
+// HandleSearch @HandleSearch
 // @Summary QueryGeocode
 // @Tags geocode
 // @Description create a search query
@@ -161,7 +132,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// HandleGeocode @Controller
+// HandleGeocode @HandleGeocode
 // @Summary QueryGeocode
 // @Tags geocode
 // @Description create a search query
@@ -172,13 +143,15 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {error} http.Error
 // @Failure 500 {error} http.Error
 // @Router /geocode [post]
+//
+//go:generate swagger generate spec -o ./swagger.json --scan-models
 func HandleGeocode(w http.ResponseWriter, r *http.Request) {
-
+	var resp Service.RequestAddressSearch
 	resp, err := Service.Handle(w, r)
 	if err != nil {
 		fmt.Println(err)
 	}
-
+	fmt.Println(resp)
 	bodyJSON, err := json.Marshal(resp)
 	if err != nil {
 		fmt.Println(err)
