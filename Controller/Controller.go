@@ -174,7 +174,48 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// Handle @Controller
+// HandleSearch @Controller
+// @Summary QueryGeocode
+// @Tags geocode
+// @Description create a search query
+// @Accept json
+// @Produce json
+// @Param input body RequestAddressSearch true "query"
+// @Success 200 {integer} integer 1
+// @Failure 404 {error} http.Error
+// @Failure 500 {error} http.Error
+// @Router /search [post]
+func HandleSearch(w http.ResponseWriter, r *http.Request) {
+	bodyJSON, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatal("Ошибка чтения запроса пользователя", err)
+	}
+	Usertoken := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+
+	client := &http.Client{}
+	url := "http://Service:8090"
+	url += r.URL.Path
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(bodyJSON))
+	if err != nil {
+		log.Fatal("Ошибка в ответе сервиса поиска", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+Usertoken)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	bodyJSON, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	w.Write(bodyJSON)
+
+}
+
+// HandleGeocode @Controller
 // @Summary QueryGeocode
 // @Tags geocode
 // @Description create a search query
@@ -185,8 +226,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 // @Failure 404 {error} http.Error
 // @Failure 500 {error} http.Error
 // @Router /geocode [post]
-// @Router /search [post]
-func Handle(w http.ResponseWriter, r *http.Request) {
+func HandleGeocode(w http.ResponseWriter, r *http.Request) {
 	bodyJSON, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Fatal("Ошибка чтения запроса пользователя", err)
