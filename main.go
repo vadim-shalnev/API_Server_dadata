@@ -28,7 +28,7 @@ func main() {
 	signal.Notify(stop, os.Interrupt)
 
 	// Создаем контекст с таймаутом 5 секунд
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
 	defer cancel()
 
 	// Создаем HTTP-сервер

@@ -52,7 +52,7 @@ func PrivaseCheker(w http.ResponseWriter, r *http.Request, Usertoken string) (st
 // @Description Register a new user
 // @Accept json
 // @Produce json
-// @Param input body todo.NewUser true "User object for registration"
+// @Param input body Repository.NewUser true "User object for registration"
 // @Success 200 {integer} integer 1
 // @Failure 404 {error} http.Error
 // @Failure 500 {error} http.Error
@@ -112,7 +112,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 // @Description create a search query
 // @Accept json
 // @Produce json
-// @Param input body RequestAddressSearch true "query"
+// @Param input body Service.RequestAddressSearch true "query"
 // @Success 200 {integer} integer 1
 // @Failure 404 {error} http.Error
 // @Failure 500 {error} http.Error
@@ -138,7 +138,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 // @Description create a search query
 // @Accept json
 // @Produce json
-// @Param input body RequestAddressSearch true "query"
+// @Param input body Service.RequestAddressSearch true "query"
 // @Success 200 {integer} integer 1
 // @Failure 404 {error} http.Error
 // @Failure 500 {error} http.Error
