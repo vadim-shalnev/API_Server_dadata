@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
+	cache "github.com/vadim-shalnev/API_Server_dadata/Cache"
 	models "github.com/vadim-shalnev/API_Server_dadata/Models"
 	"gitlab.com/ptflp/goboilerplate/internal/db/adapter"
-	"gitlab.com/ptflp/goboilerplate/internal/infrastructure/cache"
 	"gitlab.com/ptflp/goboilerplate/internal/infrastructure/db/scanner"
 	"time"
 )
