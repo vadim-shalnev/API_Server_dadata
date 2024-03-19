@@ -1,7 +1,7 @@
 package Models
 
 import (
-	"gitlab.com/ptflp/goboilerplate/internal/infrastructure/db/types"
+	types "github.com/vadim-shalnev/API_Server_dadata/Db/Types"
 	"time"
 )
 

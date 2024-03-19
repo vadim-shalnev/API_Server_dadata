@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
+	models "github.com/vadim-shalnev/API_Server_dadata/Models"
 	"gitlab.com/ptflp/goboilerplate/internal/db/adapter"
 	"gitlab.com/ptflp/goboilerplate/internal/infrastructure/cache"
 	"gitlab.com/ptflp/goboilerplate/internal/infrastructure/db/scanner"
-	"gitlab.com/ptflp/goboilerplate/internal/models"
 	"time"
 )
 
