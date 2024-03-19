@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	httpSwagger "github.com/swaggo/http-swagger"
 	Controller "github.com/vadim-shalnev/API_Server_dadata/Controller"
+	_ "github.com/vadim-shalnev/API_Server_dadata/docs"
 	"log"
 	"net/http"
 	"os"
@@ -27,8 +28,7 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 
-	// Создаем контекст с таймаутом 5 секунд
-	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
 	// Создаем HTTP-сервер
@@ -42,7 +42,6 @@ func main() {
 		}
 	}()
 
-	// Ожидаем сигнала завершения от операционной системы или отмены контекста
 	select {
 	case <-stop:
 		fmt.Println("Получен сигнал завершения")
@@ -65,7 +64,7 @@ func Query() http.Handler {
 		r.Post("/geocode", Controller.HandleGeocode)
 	})
 	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/swagger/doc.json"), // Укажите путь к файлу swagger.json
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
 	))
 	return r
 }

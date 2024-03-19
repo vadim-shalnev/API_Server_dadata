@@ -107,7 +107,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 }
 
 // HandleSearch @HandleSearch
-// @Summary QueryGeocode
+// @Summary QuerySearch
 // @Tags geocode
 // @Description create a search query
 // @Accept json
@@ -118,7 +118,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 // @Failure 500 {error} http.Error
 // @Router /search [post]
 func HandleSearch(w http.ResponseWriter, r *http.Request) {
-
+	var resp Service.RequestAddressSearch
 	resp, err := Service.Handle(w, r)
 	if err != nil {
 		fmt.Println(err)

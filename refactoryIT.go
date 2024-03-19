@@ -1,14 +1,10 @@
 package main
 
 import (
-	"context"
-	"database/sql"
-	"errors"
-	"fmt"
 	_ "github.com/lib/pq"
-	"log"
 )
 
+/*
 type Repository interface {
 	Create(ctx context.Context, user User) error
 	GetByID(ctx context.Context, id string) (User, error)
@@ -116,7 +112,7 @@ func (r *UserRepository) CreateTableIfNotExists(ctx context.Context) error {
 	var exists bool
 	err := r.db.QueryRowContext(ctx, `SELECT EXISTS (
         SELECT 1
-        FROM   information_schema.tables 
+        FROM   information_schema.tables
         WHERE  table_schema = 'public'
         AND    table_name = 'users'
     )`).Scan(&exists)
@@ -216,3 +212,5 @@ func (r *UserRepository) List(ctx context.Context, c Conditions) ([]User, int, e
 
 	return users, count, nil
 }
+
+*/
